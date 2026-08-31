@@ -89,28 +89,38 @@
 
   <script>
     /* ------------------------------------------------------------------
-       TEACHER SETUP: Paste pure target root words of ANY length!
+       TEACHER SETUP: Paste words of any length (4-8 letters) below!
     ------------------------------------------------------------------ */
     const SECRET_WORDS = [
-      "TABLE",
-      "BIBLE",
-      "CRADLE",
-      "CABLE",
-      "BUGLE",
-      "WIGGLE",
-      "LITTLE",
-      "MUDDLE",
-      "PUDDLE",
-      "SETTLE",
-      "RATTLE",
-      "BOTTLE",
-      "HUMBLE",
-      "JUMBLE",
-      "TEMPLE",
-      "KINDLE",
-      "SIMPLE",
-      "HANDLE"
-    ];
+  "RATTLE",
+  "BIBLE",
+  "JUMBLE",
+  "PUDDLE",
+  "BUGLE",
+  "HANDLE",
+  "WIGGLE",
+  "TABLE",
+  "KINDLE",
+  "BOTTLE",
+  "CABLE",
+  "SIMPLE",
+  "SETTLE",
+  "CRADLE",
+  "GENTLE",
+  "MUDDLE",
+  "BEETLE",
+  "JUNGLE",
+  "PUZZLE",
+  "STABLE",
+  "HUMBLE",
+  "LITTLE",
+  "NOBLE",
+  "CANDLE",
+  "BUBBLE",
+  "TITLE",
+  "TEMPLE",
+  "GIGGLE"
+];
 
     let wordList = [];
     let targetWord = "";
@@ -128,7 +138,10 @@
         const text = await response.text();
         
         text.split(/\r?\n/).forEach(word => {
-          fullDictionary.add(word.trim().toUpperCase());
+          const clean = word.trim().toUpperCase();
+          if (clean.length >= 3 && clean.length <= 10) {
+            fullDictionary.add(clean);
+          }
         });
 
         document.getElementById('message').innerText = "";
