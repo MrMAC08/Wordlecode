@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6-Letter Spelling Wordle</title>
+  <title>Structured Literacy Wordle</title>
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #121213; color: white; margin: 0; padding: 15px; height: 100vh; justify-content: space-between; }
@@ -12,7 +12,7 @@
     button { background: #538d4e; color: white; border: none; padding: 12px 24px; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 1rem; text-transform: uppercase; }
     button:hover { background: #6aaa64; }
     
-    /* Grid Styling */
+    /* Dynamic Grid Styling */
     .grid { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
     .row { display: flex; gap: 5px; }
     .tile { width: 48px; height: 48px; border: 2px solid #3a3a3c; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; text-transform: uppercase; user-select: none; transition: transform 0.15s ease-in-out; }
@@ -89,25 +89,32 @@
 
   <script>
     /* ------------------------------------------------------------------
-       TEACHER SETUP: Paste your 6-letter secret words in the array below.
-       Surround each word in quotes, separated by commas.
+       TEACHER SETUP: Paste pure target root words of ANY length!
     ------------------------------------------------------------------ */
     const SECRET_WORDS = [
-  "LITTLE",
-  "HANDLE",
-  "JUNGLE",
-  "PUZZLE",
-  "CANDLE",
-  "BOTTLE",
-  "RATTLE",
-  "BEETLE",
-  "CRADLE",
-  "SIMPLE"
-];
+      "TABLE",
+      "BIBLE",
+      "CRADLE",
+      "CABLE",
+      "BUGLE",
+      "WIGGLE",
+      "LITTLE",
+      "MUDDLE",
+      "PUDDLE",
+      "SETTLE",
+      "RATTLE",
+      "BOTTLE",
+      "HUMBLE",
+      "JUMBLE",
+      "TEMPLE",
+      "KINDLE",
+      "SIMPLE",
+      "HANDLE"
+    ];
 
     let wordList = [];
     let targetWord = "";
-    const WORD_LENGTH = 6;
+    let wordLength = 6;
     let currentRow = 0;
     let currentTile = 0;
     let guesses = [];
@@ -121,10 +128,7 @@
         const text = await response.text();
         
         text.split(/\r?\n/).forEach(word => {
-          const cleanWord = word.trim().toUpperCase();
-          if (cleanWord.length === WORD_LENGTH) {
-            fullDictionary.add(cleanWord);
-          }
+          fullDictionary.add(word.trim().toUpperCase());
         });
 
         document.getElementById('message').innerText = "";
@@ -138,11 +142,8 @@
     initDictionary();
 
     function startGame() {
-      wordList = SECRET_WORDS.map(w => w.trim().toUpperCase()).filter(w => w.length === WORD_LENGTH);
-      
-      // Reverse array so words play in the order listed above
+      wordList = SECRET_WORDS.map(w => w.trim().toUpperCase());
       wordList.reverse();
-
       wordList.forEach(w => fullDictionary.add(w));
       nextWord();
     }
@@ -155,9 +156,10 @@
       }
 
       targetWord = wordList.pop();
+      wordLength = targetWord.length;
       currentRow = 0;
       currentTile = 0;
-      guesses = Array(6).fill("").map(() => Array(WORD_LENGTH).fill(""));
+      guesses = Array(6).fill("").map(() => Array(wordLength).fill(""));
       gameOver = false;
 
       document.getElementById('message').innerText = "";
@@ -181,7 +183,7 @@
         const row = document.createElement('div');
         row.className = 'row';
         row.id = `row-${i}`;
-        for (let j = 0; j < WORD_LENGTH; j++) {
+        for (let j = 0; j < wordLength; j++) {
           const tile = document.createElement('div');
           tile.className = 'tile';
           tile.id = `tile-${i}-${j}`;
@@ -206,7 +208,7 @@
     }
 
     function addLetter(letter) {
-      if (currentTile < WORD_LENGTH && currentRow < 6) {
+      if (currentTile < wordLength && currentRow < 6) {
         guesses[currentRow][currentTile] = letter;
         const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
         tile.innerText = letter;
@@ -232,7 +234,7 @@
     }
 
     function submitGuess() {
-      if (currentTile < WORD_LENGTH) {
+      if (currentTile < wordLength) {
         showMessage("Not enough letters");
         shakeRow(currentRow);
         return;
@@ -247,10 +249,10 @@
       }
 
       const targetArr = targetWord.split("");
-      const resultColors = Array(WORD_LENGTH).fill('absent');
+      const resultColors = Array(wordLength).fill('absent');
 
       // Pass 1: Correct letters (Green)
-      for (let i = 0; i < WORD_LENGTH; i++) {
+      for (let i = 0; i < wordLength; i++) {
         if (guess[i] === targetWord[i]) {
           resultColors[i] = 'correct';
           targetArr[i] = null;
@@ -258,7 +260,7 @@
       }
 
       // Pass 2: Present letters (Yellow)
-      for (let i = 0; i < WORD_LENGTH; i++) {
+      for (let i = 0; i < wordLength; i++) {
         if (resultColors[i] === 'absent') {
           const indexInTarget = targetArr.indexOf(guess[i]);
           if (indexInTarget !== -1) {
@@ -269,7 +271,7 @@
       }
 
       // Animate flip & reveal
-      for (let i = 0; i < WORD_LENGTH; i++) {
+      for (let i = 0; i < wordLength; i++) {
         const tile = document.getElementById(`tile-${currentRow}-${i}`);
         const letter = guess[i];
         
@@ -280,7 +282,7 @@
         }, i * 200);
       }
 
-      // Handle Win / Lose after animation completes
+      // Handle Win / Lose
       setTimeout(() => {
         if (guess === targetWord) {
           showMessage("Splendid!", 0);
@@ -294,7 +296,7 @@
           currentRow++;
           currentTile = 0;
         }
-      }, WORD_LENGTH * 200);
+      }, wordLength * 200);
     }
 
     function shakeRow(rowIdx) {
