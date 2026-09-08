@@ -155,12 +155,10 @@
     initDictionary();
 
     function startGame() {
-      wordList = SECRET_WORDS.map(w => w.trim().toUpperCase());
-      wordList.reverse();
-      wordList.forEach(w => fullDictionary.add(w));
-      nextWord();
-    }
-
+  wordList = SECRET_WORDS.map(w => w.trim().toUpperCase()).sort(() => Math.random() - 0.5);
+  wordList.forEach(w => fullDictionary.add(w));
+  nextWord();
+}
     function nextWord() {
       if (wordList.length === 0) {
         showMessage("Game Over! All words solved.", 0);
