@@ -3,545 +3,332 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Year 5 Suffix Wordle (-tion, -sion, -cian)</title>
+  <title>Structured Literacy Wordle</title>
   <style>
-    :root {
-      --bg-color: #f0f4f8;
-      --card-bg: #ffffff;
-      --primary: #3b82f6;
-      --correct: #22c55e;
-      --present: #eab308;
-      --absent: #94a3b8;
-      --border: #cbd5e1;
-      --text: #1e293b;
-    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #121213; color: white; margin: 0; padding: 15px; height: 100vh; justify-content: space-between; }
+    h1 { margin: 0 0 10px 0; font-size: 2rem; letter-spacing: 0.1rem; border-bottom: 1px solid #3a3a3c; width: 100%; text-align: center; padding-bottom: 10px; }
+    #game-container { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 500px; }
+    button { background: #538d4e; color: white; border: none; padding: 12px 24px; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 1rem; text-transform: uppercase; }
+    button:hover { background: #6aaa64; }
+    
+    /* Dynamic Grid Styling */
+    .grid { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+    .row { display: flex; gap: 5px; }
+    .tile { width: 48px; height: 48px; border: 2px solid #3a3a3c; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; text-transform: uppercase; user-select: none; transition: transform 0.15s ease-in-out; }
+    .tile[data-state="active"] { border-color: #565758; animation: pop 0.1s ease-in-out; }
+    
+    /* Colors & Animations */
+    .correct { background: #538d4e !important; border-color: #538d4e !important; color: white; }
+    .present { background: #b59f3b !important; border-color: #b59f3b !important; color: white; }
+    .absent { background: #3a3a3c !important; border-color: #3a3a3c !important; color: white; }
+    .flip { animation: flip 0.5s ease forwards; }
+    .shake { animation: shake 0.5s; }
+    
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+    @keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
 
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text);
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      margin: 0 0 5px 0;
-      color: #0f172a;
-      font-size: 2rem;
-    }
-
-    .subtitle {
-      color: #64748b;
-      font-size: 1rem;
-      margin: 0;
-    }
-
-    .app-container {
-      display: flex;
-      flex-direction: row;
-      gap: 30px;
-      max-width: 1100px;
-      width: 100%;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    /* Game Column */
-    .game-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: var(--card-bg);
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-      max-width: 650px;
-      width: 100%;
-    }
-
-    .info-bar {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin-bottom: 15px;
-      font-weight: 600;
-      color: #475569;
-    }
-
-    /* Dynamic Grid */
-    #board-container {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-      overflow-x: auto;
-      padding: 10px 0;
-    }
-
-    .board {
-      display: grid;
-      gap: 6px;
-      width: 100%;
-      max-width: 600px;
-    }
-
-    .row {
-      display: grid;
-      gap: 6px;
-      width: 100%;
-    }
-
-    .tile {
-      aspect-ratio: 1;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      font-weight: bold;
-      text-transform: uppercase;
-      user-select: none;
-      background-color: #fff;
-      transition: transform 0.15s ease, background-color 0.3s ease, border-color 0.3s ease;
-    }
-
-    .tile[data-state="active"] {
-      border-color: #64748b;
-      transform: scale(1.03);
-    }
-
-    .tile[data-state="correct"] {
-      background-color: var(--correct);
-      border-color: var(--correct);
-      color: white;
-    }
-
-    .tile[data-state="present"] {
-      background-color: var(--present);
-      border-color: var(--present);
-      color: white;
-    }
-
-    .tile[data-state="absent"] {
-      background-color: var(--absent);
-      border-color: var(--absent);
-      color: white;
-    }
-
-    /* Controls */
-    .controls {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 15px;
-      width: 100%;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 12px 16px;
-      font-size: 1.1rem;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      outline: none;
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--primary);
-    }
-
-    button {
-      padding: 12px 20px;
-      font-size: 1rem;
-      font-weight: 600;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    button:hover {
-      background-color: #2563eb;
-    }
-
-    .message {
-      min-height: 24px;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 10px;
-      color: #e11d48;
-    }
-
-    /* Word Bank Sidebar */
-    .sidebar {
-      width: 320px;
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    }
-
-    .sidebar h2 {
-      font-size: 1.2rem;
-      margin-top: 0;
-      margin-bottom: 10px;
-      border-bottom: 2px solid #f1f5f9;
-      padding-bottom: 8px;
-    }
-
-    .suffix-group {
-      margin-bottom: 15px;
-    }
-
-    .suffix-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .word-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .word-badge {
-      background-color: #f1f5f9;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #334155;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .word-badge:hover {
-      background-color: #e2e8f0;
-    }
-
-    .word-badge.used {
-      text-decoration: line-through;
-      opacity: 0.4;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 850px) {
-      .app-container {
-        flex-direction: column;
-        align-items: center;
-      }
-      .sidebar {
-        width: 100%;
-        max-width: 650px;
-      }
-    }
+    /* On-Screen Keyboard */
+    #keyboard { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 500px; margin-top: auto; }
+    .keyboard-row { display: flex; justify-content: center; gap: 4px; touch-action: manipulation; }
+    .key { background: #818384; color: white; border: 0; border-radius: 4px; height: 50px; flex: 1; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; cursor: pointer; user-select: none; }
+    .key.wide { flex: 1.5; font-size: 0.75rem; }
+    
+    #message { font-size: 1.1rem; height: 25px; font-weight: bold; color: #f39c12; text-align: center; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Suffix Wordle Challenge</h1>
-    <p class="subtitle">Practice your Year 5 spelling words ending in <strong>-tion</strong>, <strong>-sion</strong>, and <strong>-cian</strong>!</p>
-  </header>
+  <h1>WORDLE</h1>
 
-  <div class="app-container">
+  <div id="game-container">
+    <div id="message">Loading Dictionary...</div>
+    <div id="grid" class="grid"></div>
     
-    <!-- Left: Game Area -->
-    <div class="game-area">
-      <div class="info-bar">
-        <span id="word-counter">Word: 1 of 27</span>
-        <span id="length-indicator">Length: 0 letters</span>
+    <div id="keyboard">
+      <div class="keyboard-row">
+        <button class="key" onclick="handleKey('Q')">Q</button>
+        <button class="key" onclick="handleKey('W')">W</button>
+        <button class="key" onclick="handleKey('E')">E</button>
+        <button class="key" onclick="handleKey('R')">R</button>
+        <button class="key" onclick="handleKey('T')">T</button>
+        <button class="key" onclick="handleKey('Y')">Y</button>
+        <button class="key" onclick="handleKey('U')">U</button>
+        <button class="key" onclick="handleKey('I')">I</button>
+        <button class="key" onclick="handleKey('O')">O</button>
+        <button class="key" onclick="handleKey('P')">P</button>
       </div>
-
-      <div id="board-container">
-        <div id="board" class="board"></div>
+      <div class="keyboard-row">
+        <button class="key" onclick="handleKey('A')">A</button>
+        <button class="key" onclick="handleKey('S')">S</button>
+        <button class="key" onclick="handleKey('D')">D</button>
+        <button class="key" onclick="handleKey('F')">F</button>
+        <button class="key" onclick="handleKey('G')">G</button>
+        <button class="key" onclick="handleKey('H')">H</button>
+        <button class="key" onclick="handleKey('J')">J</button>
+        <button class="key" onclick="handleKey('K')">K</button>
+        <button class="key" onclick="handleKey('L')">L</button>
       </div>
-
-      <div id="message" class="message"></div>
-
-      <div class="controls">
-        <input type="text" id="guess-input" placeholder="TYPE YOUR GUESS" autocomplete="off" maxlength="15">
-        <button id="submit-btn" onclick="makeGuess()">ENTER</button>
-      </div>
-
-      <button id="next-btn" onclick="nextWord()" style="display: none; width: 100%; background-color: #16a34a;">Next Word &rarr;</button>
-    </div>
-
-    <!-- Right: Word Bank -->
-    <div class="sidebar">
-      <h2>Word Bank</h2>
-      <p style="font-size: 0.85rem; color: #64748b; margin-top: -5px; margin-bottom: 15px;">Click any word to insert it into your guess box!</p>
-      
-      <div class="suffix-group">
-        <div class="suffix-title">-tion Words</div>
-        <div class="word-list" id="list-tion"></div>
-      </div>
-
-      <div class="suffix-group">
-        <div class="suffix-title">-sion Words</div>
-        <div class="word-list" id="list-sion"></div>
-      </div>
-
-      <div class="suffix-group">
-        <div class="suffix-title">-cian Words</div>
-        <div class="word-list" id="list-cian"></div>
+      <div class="keyboard-row">
+        <button class="key wide" onclick="handleKey('ENTER')">ENTER</button>
+        <button class="key" onclick="handleKey('Z')">Z</button>
+        <button class="key" onclick="handleKey('X')">X</button>
+        <button class="key" onclick="handleKey('C')">C</button>
+        <button class="key" onclick="handleKey('V')">V</button>
+        <button class="key" onclick="handleKey('B')">B</button>
+        <button class="key" onclick="handleKey('N')">N</button>
+        <button class="key" onclick="handleKey('M')">M</button>
+        <button class="key wide" onclick="handleKey('BACKSPACE')">DELETE</button>
       </div>
     </div>
-
+    
+    <button id="next-btn" class="hidden" style="margin-top:15px;" onclick="nextWord()">Play Next Word</button>
   </div>
 
   <script>
-    const RAW_WORDS = [
-      "CELEBRATION", "POLLUTION", "INSPIRATION", "CONSIDERATION", "IMAGINATION",
-      "ACTION", "CONDITION", "INVITATION", "COMPETITION", "COLLISION",
-      "DIVISION", "CONFUSION", "EXTENSION", "EXPLOSION", "TELEVISION",
-      "PERSUASION", "SUSPENSION", "DECISION", "MUSICIAN", "POLITICIAN",
-      "MAGICIAN", "ELECTRICIAN", "OPTICIAN", "TECHNICIAN", "BEAUTICIAN",
-      "DIETICIAN", "PHYSICIAN"
-    ];
+    /* ------------------------------------------------------------------
+       TEACHER SETUP: Paste words of any length (4-8 letters) below!
+    ------------------------------------------------------------------ */
+    const SECRET_WORDS = [
+  "RATTLE",
+  "BIBLE",
+  "JUMBLE",
+  "PUDDLE",
+  "BUGLE",
+  "HANDLE",
+  "WIGGLE",
+  "TABLE",
+  "KINDLE",
+  "BOTTLE",
+  "CABLE",
+  "SIMPLE",
+  "SETTLE",
+  "CRADLE",
+  "GENTLE",
+  "MUDDLE",
+  "BEETLE",
+  "JUNGLE",
+  "PUZZLE",
+  "STABLE",
+  "HUMBLE",
+  "LITTLE",
+  "NOBLE",
+  "CANDLE",
+  "BUBBLE",
+  "TITLE",
+  "TEMPLE",
+  "GIGGLE"
+];
 
     let wordList = [];
-    let fullDictionary = new Set(RAW_WORDS);
     let targetWord = "";
-    let wordLength = 0;
+    let wordLength = 6;
     let currentRow = 0;
-    let maxGuesses = 6;
+    let currentTile = 0;
     let guesses = [];
     let gameOver = false;
-    let totalWordsCount = RAW_WORDS.length;
-    let currentWordIndex = 0;
+    let fullDictionary = new Set();
+    const keyStateMap = {};
 
-    function initWordBank() {
-      const listTion = document.getElementById('list-tion');
-      const listSion = document.getElementById('list-sion');
-      const listCian = document.getElementById('list-cian');
-
-      listTion.innerHTML = '';
-      listSion.innerHTML = '';
-      listCian.innerHTML = '';
-
-      // Sort alphabetically for word bank readability
-      const sorted = [...RAW_WORDS].sort();
-
-      sorted.forEach(word => {
-        const badge = document.createElement('span');
-        badge.className = 'word-badge';
-        badge.id = `badge-${word}`;
-        badge.innerText = word;
-        badge.onclick = () => {
-          if (!gameOver) {
-            document.getElementById('guess-input').value = word;
-            document.getElementById('guess-input').focus();
+    async function initDictionary() {
+      try {
+        const response = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+        const text = await response.text();
+        
+        text.split(/\r?\n/).forEach(word => {
+          const clean = word.trim().toUpperCase();
+          if (clean.length >= 3 && clean.length <= 10) {
+            fullDictionary.add(clean);
           }
-        };
+        });
 
-        if (word.endsWith('TION')) {
-          listTion.appendChild(badge);
-        } else if (word.endsWith('SION')) {
-          listSion.appendChild(badge);
-        } else if (word.endsWith('CIAN')) {
-          listCian.appendChild(badge);
-        }
-      });
+        document.getElementById('message').innerText = "";
+        startGame();
+      } catch (err) {
+        document.getElementById('message').innerText = "";
+        startGame();
+      }
     }
+
+    initDictionary();
 
     function startGame() {
-      // Shuffle the list for random play
-      wordList = [...RAW_WORDS].sort(() => Math.random() - 0.5);
-      initWordBank();
-      currentWordIndex = 0;
-      nextWord();
-    }
-
+  wordList = SECRET_WORDS.map(w => w.trim().toUpperCase()).sort(() => Math.random() - 0.5);
+  wordList.forEach(w => fullDictionary.add(w));
+  nextWord();
+}
     function nextWord() {
       if (wordList.length === 0) {
-        showMessage("🎉 Congratulations! You have completed all 27 words!", false);
-        document.getElementById('next-btn').style.display = 'none';
+        showMessage("Game Over! All words solved.", 0);
+        document.getElementById('next-btn').classList.add('hidden');
         return;
       }
 
       targetWord = wordList.pop();
       wordLength = targetWord.length;
-      currentWordIndex++;
       currentRow = 0;
+      currentTile = 0;
+      guesses = Array(6).fill("").map(() => Array(wordLength).fill(""));
       gameOver = false;
-      guesses = [];
 
-      // Update UI Header
-      document.getElementById('word-counter').innerText = `Word: ${currentWordIndex} of ${totalWordsCount}`;
-      document.getElementById('length-indicator').innerText = `Length: ${wordLength} letters`;
       document.getElementById('message').innerText = "";
-      document.getElementById('next-btn').style.display = 'none';
-      document.getElementById('submit-btn').style.display = 'inline-block';
-      
-      const input = document.getElementById('guess-input');
-      input.value = "";
-      input.maxLength = wordLength;
-      input.disabled = false;
-      input.focus();
+      document.getElementById('next-btn').classList.add('hidden');
 
-      buildBoard();
+      resetKeyboard();
+      buildGrid();
     }
 
-    function buildBoard() {
-      const board = document.getElementById('board');
-      board.innerHTML = '';
+    function resetKeyboard() {
+      document.querySelectorAll('.key').forEach(k => {
+        k.className = k.classList.contains('wide') ? 'key wide' : 'key';
+      });
+      for (let key in keyStateMap) delete keyStateMap[key];
+    }
 
-      for (let r = 0; r < maxGuesses; r++) {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = 'row';
-        rowDiv.style.gridTemplateColumns = `repeat(${wordLength}, 1fr)`;
-
-        for (let c = 0; c < wordLength; c++) {
+    function buildGrid() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = "";
+      for (let i = 0; i < 6; i++) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.id = `row-${i}`;
+        for (let j = 0; j < wordLength; j++) {
           const tile = document.createElement('div');
           tile.className = 'tile';
-          tile.id = `tile-${r}-${c}`;
-          rowDiv.appendChild(tile);
+          tile.id = `tile-${i}-${j}`;
+          row.appendChild(tile);
         }
-        board.appendChild(rowDiv);
+        grid.appendChild(row);
       }
     }
 
-    function makeGuess() {
+    document.addEventListener('keydown', (e) => {
       if (gameOver) return;
+      if (e.key === 'Enter') handleKey('ENTER');
+      else if (e.key === 'Backspace') handleKey('BACKSPACE');
+      else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
+    });
 
-      const input = document.getElementById('guess-input');
-      const guess = input.value.trim().toUpperCase();
+    function handleKey(key) {
+      if (gameOver) return;
+      if (key === 'ENTER') submitGuess();
+      else if (key === 'BACKSPACE') removeLetter();
+      else addLetter(key);
+    }
 
-      if (guess.length !== wordLength) {
-        showMessage(`Your guess must be exactly ${wordLength} letters long!`);
+    function addLetter(letter) {
+      if (currentTile < wordLength && currentRow < 6) {
+        guesses[currentRow][currentTile] = letter;
+        const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+        tile.innerText = letter;
+        tile.setAttribute('data-state', 'active');
+        currentTile++;
+      }
+    }
+
+    function removeLetter() {
+      if (currentTile > 0) {
+        currentTile--;
+        guesses[currentRow][currentTile] = "";
+        const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+        tile.innerText = "";
+        tile.removeAttribute('data-state');
+      }
+    }
+
+    function showMessage(msg, duration = 2000) {
+      const msgDiv = document.getElementById('message');
+      msgDiv.innerText = msg;
+      if (duration) setTimeout(() => { if (msgDiv.innerText === msg) msgDiv.innerText = ""; }, duration);
+    }
+
+    function submitGuess() {
+      if (currentTile < wordLength) {
+        showMessage("Not enough letters");
+        shakeRow(currentRow);
         return;
       }
 
-      showMessage(""); // Clear messages
+      const guess = guesses[currentRow].join("");
 
-      // Update tiles for current row
-      const targetLetters = targetWord.split('');
-      const guessLetters = guess.split('');
-      const letterStates = Array(wordLength).fill('absent');
+      if (fullDictionary.size > 0 && !fullDictionary.has(guess)) {
+        showMessage("Not in word list");
+        shakeRow(currentRow);
+        return;
+      }
 
-      // First pass: Find correct matches
+      const targetArr = targetWord.split("");
+      const resultColors = Array(wordLength).fill('absent');
+
+      // Pass 1: Correct letters (Green)
       for (let i = 0; i < wordLength; i++) {
-        if (guessLetters[i] === targetLetters[i]) {
-          letterStates[i] = 'correct';
-          targetLetters[i] = null; // Mark handled
+        if (guess[i] === targetWord[i]) {
+          resultColors[i] = 'correct';
+          targetArr[i] = null;
         }
       }
 
-      // Second pass: Find present matches
+      // Pass 2: Present letters (Yellow)
       for (let i = 0; i < wordLength; i++) {
-        if (letterStates[i] !== 'correct') {
-          const indexInTarget = targetLetters.indexOf(guessLetters[i]);
+        if (resultColors[i] === 'absent') {
+          const indexInTarget = targetArr.indexOf(guess[i]);
           if (indexInTarget !== -1) {
-            letterStates[i] = 'present';
-            targetLetters[indexInTarget] = null; // Mark handled
+            resultColors[i] = 'present';
+            targetArr[indexInTarget] = null;
           }
         }
       }
 
-      // Render to row
-      for (let c = 0; c < wordLength; c++) {
-        const tile = document.getElementById(`tile-${currentRow}-${c}`);
-        tile.innerText = guessLetters[c];
-        tile.setAttribute('data-state', letterStates[c]);
+      // Animate flip & reveal
+      for (let i = 0; i < wordLength; i++) {
+        const tile = document.getElementById(`tile-${currentRow}-${i}`);
+        const letter = guess[i];
+        
+        setTimeout(() => {
+          tile.classList.add('flip');
+          tile.classList.add(resultColors[i]);
+          updateKeyboard(letter, resultColors[i]);
+        }, i * 200);
       }
 
-      currentRow++;
-      input.value = "";
+      // Handle Win / Lose
+      setTimeout(() => {
+        if (guess === targetWord) {
+          showMessage("Splendid!", 0);
+          gameOver = true;
+          document.getElementById('next-btn').classList.remove('hidden');
+        } else if (currentRow === 5) {
+          showMessage(`Word was: ${targetWord}`, 0);
+          gameOver = true;
+          document.getElementById('next-btn').classList.remove('hidden');
+        } else {
+          currentRow++;
+          currentTile = 0;
+        }
+      }, wordLength * 200);
+    }
 
-      // Check win condition
-      if (guess === targetWord) {
-        gameOver = true;
-        showMessage(`🌟 Awesome! You guessed ${targetWord}!`, false);
-        markWordAsUsed(targetWord);
-        finishTurn();
-      } else if (currentRow >= maxGuesses) {
-        gameOver = true;
-        showMessage(`Nice try! The word was: ${targetWord}`, true);
-        markWordAsUsed(targetWord);
-        finishTurn();
+    function shakeRow(rowIdx) {
+      const row = document.getElementById(`row-${rowIdx}`);
+      row.classList.add('shake');
+      setTimeout(() => row.classList.remove('shake'), 500);
+    }
+
+    function updateKeyboard(letter, state) {
+      const priority = { 'correct': 3, 'present': 2, 'absent': 1 };
+      const currentState = keyStateMap[letter];
+
+      if (!currentState || priority[state] > priority[currentState]) {
+        keyStateMap[letter] = state;
+        document.querySelectorAll('.key').forEach(k => {
+          if (k.innerText === letter) {
+            k.className = `key ${state}`;
+          }
+        });
       }
     }
-
-    function finishTurn() {
-      document.getElementById('guess-input').disabled = true;
-      document.getElementById('submit-btn').style.display = 'none';
-      document.getElementById('next-btn').style.display = 'block';
-    }
-
-    function markWordAsUsed(word) {
-      const badge = document.getElementById(`badge-${word}`);
-      if (badge) {
-        badge.classList.add('used');
-      }
-    }
-
-    function showMessage(msg, isError = true) {
-      const msgDiv = document.getElementById('message');
-      msgDiv.innerText = msg;
-      msgDiv.style.color = isError ? '#e11d48' : '#16a34a';
-    }
-
-    // Allow Enter key to submit
-    document.getElementById('guess-input').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        makeGuess();
-      }
-    });
-
-    // Start on load
-    window.onload = startGame;
   </script>
 </body>
 </html>
-```eof
-
-### Key Features Added:
-1. **Dynamic Grid Resizing:** The board instantly calculates the length of the current word and draws the exact number of boxes required (e.g., 6 columns for *ACTION*, 13 columns for *CONSIDERATION*).
-2. **Interactive Word Bank:** Displays all 27 words neatly grouped by their suffix pattern (`-tion`, `-sion`, `-cian`). Students can click any word in the bank to auto-fill it into the input box!
-3. **Word Tracker:** Crosses out words in the sidebar once they have been played.Standard Wordle mechanics require every word in a puzzle to have the exact same length (typically 5 letters). Because your list spans lengths from 6 letters ("ACTION") all the way up to 13 letters ("CONSIDERATION"), traditional Wordle rules will break down. Blanking out leftover boxes makes the grid visually confusing for students and gives away word lengths too early, removing much of the logic aspect.
-
-Instead of a single standard Wordle grid, here are three classroom-tested ways to make this word list work:
-
-**1. Group by Word Length (Best Wordle Adaptation)**
-Split the list into distinct Wordle puzzles based on word length. You can run one 6-letter game, one 8-letter game, etc.
-
-*   **6 Letters:** ACTION
-*   **8 Letters:** DIVISION, DECISION, OPTICIAN
-*   **9 Letters:** POLLUTION, CONDITION, COLLISION, CONFUSION, EXPLOSION, MAGICIAN, PHYSICIAN
-*   **10 Letters:** INVITATION, EXTENSION, TELEVISION, PERSUASION, SUSPENSION, MUSICIAN, DIETICIAN
-*   **11 Letters:** CELEBRATION, INSPIRATION, COMPETITION, BEAUTICIAN, TECHNICIAN
-*   **12 Letters:** IMAGINATION, POLITICIAN, ELECTRICIAN
-*   **13 Letters:** CONSIDERATION
-
-**2. Standardize to an 8 or 9-Letter Wordle (Recommended)**
-If you want a single puzzle grid for all students, pick one target length (e.g., 8 letters) and give them a word bank of only 8-letter words. 
-
-**3. Switch to a "Target Suffix" Wordle**
-Since all your words end in **-TION**, **-SION**, or **-CIAN**, you can pre-fill the last 4 boxes of the grid on their worksheet:
-* `[ ] [ ] [ ] [ ] [T] [I] [O] [N]`
-Students only guess the root prefixes, which keeps the grid size manageable (4 to 5 letters to guess) while reinforcing the target spelling patterns.
-
-**Should you give them the list?**
-**Yes, absolutely give them the word bank.** Guessing 8 to 13-letter words without a list becomes a frustrating guessing game rather than an educational exercise. With the list, students practice active pattern recognition, suffix identification (-tion vs -sion vs -cian), and letter elimination.
