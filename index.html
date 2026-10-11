@@ -89,32 +89,32 @@
 
   <script>
     /* ------------------------------------------------------------------
-       TEACHER SETUP: Paste words of any length (4-8 letters) below!
+       TEACHER SETUP: Soft -dge ending words (Commas required!)
     ------------------------------------------------------------------ */
     const SECRET_WORDS = [
-"badge"
-"edge"
-"hedge"
-"ledge"
-"pledge"
-"sledge"
-"bridge"
-"ridge"
-"fridge"
-"lodge"
-"dodge"
-"judge"
-"fudge"
-"nudge"
-"sludge"
-"trudge"
-"grudge"
-"smudge"
-"badger"
-"fidget"
-"budget"
-"gadget"
-];
+      "badge",
+      "edge",
+      "hedge",
+      "ledge",
+      "pledge",
+      "sledge",
+      "bridge",
+      "ridge",
+      "fridge",
+      "lodge",
+      "dodge",
+      "judge",
+      "fudge",
+      "nudge",
+      "sludge",
+      "trudge",
+      "grudge",
+      "smudge",
+      "badger",
+      "fidget",
+      "budget",
+      "gadget"
+    ];
 
     let wordList = [];
     let targetWord = "";
@@ -149,10 +149,11 @@
     initDictionary();
 
     function startGame() {
-  wordList = SECRET_WORDS.map(w => w.trim().toUpperCase()).sort(() => Math.random() - 0.5);
-  wordList.forEach(w => fullDictionary.add(w));
-  nextWord();
-}
+      wordList = SECRET_WORDS.map(w => w.trim().toUpperCase()).sort(() => Math.random() - 0.5);
+      wordList.forEach(w => fullDictionary.add(w));
+      nextWord();
+    }
+
     function nextWord() {
       if (wordList.length === 0) {
         showMessage("Game Over! All words solved.", 0);
